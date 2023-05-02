@@ -1,0 +1,45 @@
+version: '1'
+
+services:
+  nginx1:
+    restart: always
+    depends_on:
+      - grafana
+    container_name: nginx1
+    build: ./nginx1/
+    ports:
+      - "8001:8001"
+    networks:
+      - nginx1
+
+  nginx2:
+    restart: always
+    depends_on:
+      - grafana
+    container_name: nginx2
+    build: 
+      context: ./nginx2/
+    ports:
+      - "8002:8002"
+    networks:
+      - nginx2
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    container_name: grafana
+    expose:
+      - "3000"    
+    networks:
+      - nginx1
+      - nginx2
+    healthcheck:
+      test: curl --fail http://nginx1:8001 || exit 1
+      interval: 10s
+      retries: 3
+      start_period: 10s
+      timeout: 5s
+
+networks:
+  nginx1:
+  nginx2:
